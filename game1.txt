@@ -1,26 +1,17 @@
-# File format: One statement per line.  Two kinds of statements:
+# Untangle file format: One statement per line.  Two kinds of statements:
 # v: $x_coord $y_coord    -> Create a vertex with x and y coordinates, 0 <= coord <= 1.
 # e: $vert1 $vert2        -> Create an edge between vertex #1 and #2 (0-based index)
 #                            Both vertices must already be declared.
-v: 0.200000, 0.200000
-v: 0.800000, 0.200000
-v: 0.800000, 0.800000
-v: 0.200000, 0.800000
-v: 0.332996, 0.837045
-v: 0.697368, 0.162955
-v: 0.845142, 0.683198
-v: 0.163968, 0.309717
+v: 0.835859, 0.174242
+v: 0.181818, 0.272727
+v: 0.381313, 0.098485
+v: 0.722222, 0.717172
+v: 0.411616, 0.757576
 e: 0, 1
-e: 1, 2
-e: 2, 3
-e: 3, 0
 e: 0, 2
-e: 1, 3
-e: 7, 5
-e: 7, 4
-e: 4, 6
-e: 6, 5
-e: 6, 2
-e: 4, 3
-e: 7, 0
-e: 5, 1
+e: 0, 3
+e: 0, 4
+e: 1, 2
+e: 1, 4
+e: 2, 3
+e: 2, 4

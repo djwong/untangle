@@ -572,10 +572,11 @@ class GameFace(gtk.DrawingArea):
 
 def print_help():
 	"""Print help."""
-	print "Usage: %s [-e [gamefile]]" % sys.argv[0]
+	print "Usage: %s [-e [gamefile | -n vertices]]" % sys.argv[0]
 	print ""
 	print "-e:         Invoke editor mode."
 	print "gamefile:   Edit a specific game file."
+	print "vertices:   Create a (solved) game with a number of vertices."
 	print ""
 	print_game_help()
 	print ""
