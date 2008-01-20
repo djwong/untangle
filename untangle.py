@@ -96,7 +96,7 @@ class App:
 	def save(self, fname):
 		"""Save the current game."""
 		fp = file(fname, "w")
-		fp.write("# File format: One statement per line.  Two kinds of statements:\n")
+		fp.write("# Untangle file format: One statement per line.  Two kinds of statements:\n")
 		fp.write("# v: $x_coord $y_coord    -> Create a vertex with x and y coordinates, 0 <= coord <= 1.\n")
 		fp.write("# e: $vert1 $vert2        -> Create an edge between vertex #1 and #2 (0-based index)\n");
 		fp.write("#                            Both vertices must already be declared.\n")
