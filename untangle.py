@@ -60,6 +60,7 @@ class App:
 			gtk.keysyms.Right: self.arrow_key_press,
 			gtk.keysyms.q: self.q_key_press,
 			gtk.keysyms.h: self.help_key_press,
+			gtk.keysyms.r: self.r_key_press,
 		}
 		editor_keymap = {
 			gtk.keysyms.n: self.n_key_press,
@@ -114,6 +115,12 @@ class App:
 					self.edges.remove(e)
 
 		assert self.check_sanity()
+
+	def randomize_vertices(self):
+		"""Move vertices to random locations."""
+		for vertex in self.vertices:
+			vertex.x = random.uniform(0, 1)
+			vertex.y = random.uniform(0, 1)
 
 	def save(self, fname):
 		"""Save the current game."""
@@ -474,6 +481,11 @@ class App:
 		self.load("game.txt")
 		print "Loaded game from 'game.txt'."
 
+	def r_key_press(self, widget, event):
+		"""Shuffle vertices around the board."""
+		self.randomize_vertices()
+		self.canvas.queue_draw()
+
 	def q_key_press(self, widget, event):
 		"""Quit game."""
 		gtk.main_quit()
@@ -573,7 +585,7 @@ def print_game_help():
 	print "Game play: Drag the vertices around until the figure"
 	print "is disentangled, i.e. all the edges are black.  You can"
 	print "also <tab> and arrow keys to navigate around.  Press 'h'"
-	print "for help and 'q' to quit."
+	print "for help, 'r' to shuffle vertices, and 'q' to quit."
 
 def print_editor_help():
 	"""Print editor help."""
@@ -587,6 +599,8 @@ def main():
 	"""Main routine."""
 	editor = False
 	file = "game0.txt"
+	num_vertices = 4
+
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "-e":
 			editor = True
@@ -600,11 +614,27 @@ def main():
 			print_help()
 			return
 
+	if file == "-n":
+		if editor:
+			if len(sys.argv) > 3:
+				try:
+					num_vertices = int(sys.argv[3])
+					file = None
+				except:
+					print_help()
+					return
+			else:
+				print_help()
+				return
+		else:
+			print_help()
+			return
+
 	app = App(editor)
 	try:
 		app.load(file)
 	except:
-		app.pollinate_2(20)
+		app.pollinate_2(num_vertices)
 	app.run_gtk()
 
 if __name__ == "__main__":
