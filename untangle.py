@@ -2,6 +2,7 @@
 
 # Untangle game, ported to python and cairo
 # Copyright (C) 2008 Darrick J. Wong
+# This file is licensed under the GPLv2; see COPYING for details.
 
 import gtk
 import math
