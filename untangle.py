@@ -573,11 +573,12 @@ class GameFace(gtk.DrawingArea):
 
 def print_help():
 	"""Print help."""
-	print "Usage: %s [-e [gamefile | -n vertices]]" % sys.argv[0]
+	print "Usage: %s [-e [gamefile | -n vertices] | level]" % sys.argv[0]
 	print ""
 	print "-e:         Invoke editor mode."
 	print "gamefile:   Edit a specific game file."
 	print "vertices:   Create a (solved) game with a number of vertices."
+	print "level:      Start playing with this level."
 	print ""
 	print_game_help()
 	print ""
@@ -603,12 +604,18 @@ def main():
 	file = "game0.txt"
 	num_vertices = 4
 
+	app = App(editor)
 	if len(sys.argv) > 1:
 		if sys.argv[1] == "-e":
 			editor = True
 		else:
-			print_help()
-			return
+			try:
+				level = int(sys.argv[1])
+				app.level = level
+				file = "game%d.txt" % level
+			except:
+				print_help()
+				return
 	if len(sys.argv) > 2:
 		if editor:
 			file = sys.argv[2]
@@ -632,10 +639,10 @@ def main():
 			print_help()
 			return
 
-	app = App(editor)
 	try:
 		app.load(file)
 	except:
+		print "Error loading %s; generating %d vertex game." % (file, num_vertices)
 		app.pollinate_2(num_vertices)
 	app.run_gtk()
 
