@@ -6,6 +6,7 @@
 import gtk
 import math
 import sys
+import random
 
 def distance(x1, y1, x2, y2):
 	"""Calculate the distance between two points."""
@@ -92,6 +93,27 @@ class App:
 		assert self.check_sanity()
 
 		self.find_collisions()
+
+	def pollinate_2(self, num_vertices):
+		"""Create some number of vertices and edges."""
+		self.vertices = []
+		for i in range(0, num_vertices):
+			x = random.uniform(0, 1)
+			y = random.uniform(0, 1)
+			v = Vertex(x, y)
+			self.vertices.append(v)
+
+		self.edges = []
+		for i in range(0, num_vertices):
+			v1 = self.vertices[i]
+			for j in range(i + 1, num_vertices):
+				v2 = self.vertices[j]
+				e = Edge(v1, v2)
+				self.edges.append(e)
+				if not self.is_solved():
+					self.edges.remove(e)
+
+		assert self.check_sanity()
 
 	def save(self, fname):
 		"""Save the current game."""
@@ -480,6 +502,8 @@ class GameFace(gtk.DrawingArea):
 		self.release_hook = None
 		self.move_hook = None
 
+		random.seed()
+
 	def button_press(self, widget, event):
 		"""Dispatch button press event to controller and start drag if desired."""
 		if event.type == gtk.gdk.BUTTON_PRESS:
@@ -580,7 +604,7 @@ def main():
 	try:
 		app.load(file)
 	except:
-		app.pollinate()
+		app.pollinate_2(20)
 	app.run_gtk()
 
 if __name__ == "__main__":
