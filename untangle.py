@@ -96,6 +96,10 @@ class App:
 	def save(self, fname):
 		"""Save the current game."""
 		fp = file(fname, "w")
+		fp.write("# File format: One statement per line.  Two kinds of statements:\n")
+		fp.write("# v: $x_coord $y_coord    -> Create a vertex with x and y coordinates, 0 <= coord <= 1.\n")
+		fp.write("# e: $vert1 $vert2        -> Create an edge between vertex #1 and #2 (0-based index)\n");
+		fp.write("#                            Both vertices must already be declared.\n")
 		for vertex in self.vertices:
 			fp.write("v: %f, %f\n" % (vertex.x, vertex.y))
 		for edge in self.edges:
@@ -194,20 +198,20 @@ class App:
 				if e1 == e2:
 					continue
 
+				# Line segment collision detection formulae
+				# shamelessly stolen from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
 				numerator_a = (e2.v2.x - e2.v1.x)*(e1.v1.y - e2.v1.y) - (e2.v2.y - e2.v1.y)*(e1.v1.x - e2.v1.x)
 				numerator_b = (e1.v2.x - e1.v1.x)*(e1.v1.y - e2.v1.y) - (e1.v2.y - e1.v1.y)*(e1.v1.x - e2.v1.x)
 				denominator = (e2.v2.y - e2.v1.y)*(e1.v2.x - e1.v1.x) - (e2.v2.x - e2.v1.x)*(e1.v2.y - e1.v1.y)
 
-				#print "--------"
-				#print e1, e2
-				#print numerator_a, numerator_b, denominator
-				# Deal with edges that have common points
+				# Deal with two edges that have common vertices
 				verts = set()
 				for vert in [e1.v1, e1.v2, e2.v1, e2.v2]:
 					verts.add((vert.x, vert.y))
 				if len(verts) == 3:
-					# Three vertices means they're attached to the same point
-					#print "3 verts, go away?"
+					# Three vertices means they're attached to the same point...
+
+					# ...but are they coincident?
 					if numerator_a == 0 and numerator_b == 0 and denominator == 0:
 						e1.collision = True
 						e2.collision = True
@@ -219,8 +223,6 @@ class App:
 					continue
 
 				# Deal with all other lines
-				# Shamelessly stolen from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-				#print "--------"
 				# Coincident or parallel lines
 				if denominator == 0:
 					# Test for coincidence
@@ -547,7 +549,7 @@ def print_game_help():
 	print "Game play: Drag the vertices around until the figure"
 	print "is disentangled, i.e. all the edges are black.  You can"
 	print "also <tab> and arrow keys to navigate around.  Press 'h'"
-	print "for help."
+	print "for help and 'q' to quit."
 
 def print_editor_help():
 	"""Print editor help."""

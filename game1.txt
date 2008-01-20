@@ -1,3 +1,7 @@
+# File format: One statement per line.  Two kinds of statements:
+# v: $x_coord $y_coord    -> Create a vertex with x and y coordinates, 0 <= coord <= 1.
+# e: $vert1 $vert2        -> Create an edge between vertex #1 and #2 (0-based index)
+#                            Both vertices must already be declared.
 v: 0.200000, 0.200000
 v: 0.800000, 0.200000
 v: 0.800000, 0.800000
