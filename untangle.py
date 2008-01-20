@@ -29,6 +29,9 @@ class Vertex:
 		self.x = clamp(self.x)
 		self.y = clamp(self.y)
 
+	def __repr__(self):
+		return "v: %f, %f" % (self.x, self.y)
+
 class Edge:
 	def __init__(self, v1, v2):
 		"""Create an edge between two vertices."""
@@ -36,10 +39,10 @@ class Edge:
 		self.v2 = v2
 		self.collision = False
 
-	def __str__(self):
-		return "(%f, %f) -> (%f, %f)" % (self.v1.x, self.v1.y, self.v2.x, self.v2.y)
+	def __repr__(self):
+		return "%s -> %s" % (str(self.v1), str(self.v2))
 
-VERTEX_RADIUS = 5
+VERTEX_RADIUS = 6
 class App:
 	def __init__(self, is_editor):
 		"""Create program controller."""
@@ -55,16 +58,19 @@ class App:
 			gtk.keysyms.Left: self.arrow_key_press,
 			gtk.keysyms.Right: self.arrow_key_press,
 			gtk.keysyms.q: self.q_key_press,
+			gtk.keysyms.h: self.help_key_press,
 		}
 		editor_keymap = {
 			gtk.keysyms.n: self.n_key_press,
 			gtk.keysyms.s: self.s_key_press,
 			gtk.keysyms.l: self.l_key_press,
+			gtk.keysyms.Delete: self.del_key_press,
 		}
 		self.is_editor = is_editor
 		if self.is_editor:
 			self.keymap.update(editor_keymap)
 		self.level = 0
+		self.last_loaded_file = None
 
 	def pollinate(self):
 		"""Create a default set of vertices/edges."""
@@ -147,6 +153,8 @@ class App:
 		if not self.check_sanity():
 			self.vertices = []
 			self.edges = []
+		self.last_loaded_file = fname
+		self.window.set_title("%s - Untangle" % fname)
 		self.canvas.queue_draw()
 
 	def check_sanity(self):
@@ -161,6 +169,12 @@ class App:
 		for vertex in self.vertices:
 			vertex.clamp()
 		return True
+
+	def help_key_press(self, a, b):
+		"""Print help."""
+		print_game_help()
+		print ""
+		print_editor_help()
 
 	def find_collisions(self):
 		"""Figure out which lines intersect."""
@@ -239,6 +253,7 @@ class App:
 		self.canvas.press_hook = self.mouse_down
 		self.canvas.release_hook = self.mouse_up
 		self.canvas.move_hook = self.mouse_move
+		self.window.resize(400, 400)
 		self.window.add(self.canvas)
 		self.window.connect("destroy", gtk.main_quit)
 		self.window.connect("key_press_event", self.key_press)
@@ -280,11 +295,37 @@ class App:
 			context.arc(x, y, VERTEX_RADIUS, 0, 2.0 * math.pi)
 			context.set_source_rgb(1, 1, 1)
 			context.fill_preserve()
-			if vertex == self.drag_vertex:
-				context.set_source_rgb(0, 0, 1)
-			else:
-				context.set_source_rgb(0, 0, 0)
+			context.set_source_rgb(0, 0, 0)
 			context.stroke()
+			if vertex == self.drag_vertex:
+				context.arc(x, y, VERTEX_RADIUS - 4, 0, 2.0 * math.pi)
+				context.set_source_rgb(0, 0, 0)
+				context.fill_preserve()
+				context.stroke()
+
+	def delete_edge(self, v1, v2):
+		"""Delete edge between two vertices."""
+		if v1 == None:
+			return False
+		elif v1 == v2:
+			return False
+		dead_edges = []
+		for edge in self.edges:
+			if (edge.v1 == v1 and edge.v2 == v2) \
+			or (edge.v1 == v2 and edge.v2 == v1):
+				dead_edges.append(edge)
+		for edge in dead_edges:
+			self.edges.remove(edge)
+		return True
+
+	def add_edge(self, v1, v2):
+		"""Add edge between two vertices."""
+		if v1 == None:
+			return
+		elif v1 == v2:
+			return
+		e = Edge(v1, v2)
+		self.edges.append(e)
 
 	def mouse_down(self, x, y, button):
 		"""Figure out if we need to start a drag."""
@@ -293,20 +334,20 @@ class App:
 			draw_x = rect.width * vertex.x + rect.x
 			draw_y = rect.height * vertex.y + rect.y
 			dist = distance(x, y, draw_x, draw_y)
-			if dist < VERTEX_RADIUS:
-				if button == 1:
-					self.drag_vertex = vertex
-					self.canvas.queue_draw()
-					return True
-				elif button == 2 and self.is_editor:
-					if self.drag_vertex == None:
-						return False
-					elif self.drag_vertex == vertex:
-						return False
-					e = Edge(self.drag_vertex, vertex)
-					self.edges.append(e)
-					self.canvas.queue_draw()
-					return False
+			if dist >= VERTEX_RADIUS:
+				continue
+			if button == 1:
+				self.drag_vertex = vertex
+				self.canvas.queue_draw()
+				return True
+			elif button == 3 and self.is_editor:
+				self.add_edge(self.drag_vertex, vertex)
+				self.canvas.queue_draw()
+				return False
+			elif button == 2 and self.is_editor:
+				self.delete_edge(self.drag_vertex, vertex)
+				self.canvas.queue_draw()
+				return False
 		self.drag_vertex = None
 		return False
 
@@ -374,6 +415,20 @@ class App:
 		self.drag_vertex.clamp()
 		self.canvas.queue_draw()
 
+	def del_key_press(self, widget, event):
+		"""Delete vertex."""
+		if self.drag_vertex == None:
+			return
+		dead_edges = []
+		for edge in self.edges:
+			if edge.v1 == self.drag_vertex or edge.v2 == self.drag_vertex:
+				dead_edges.append(edge)
+		for edge in dead_edges:
+			self.edges.remove(edge)
+		self.vertices.remove(self.drag_vertex)
+		self.drag_vertex = None
+		self.canvas.queue_draw()
+
 	def n_key_press(self, widget, event):
 		"""Create new vertex."""
 		v = Vertex(0.5, 0.5)
@@ -383,8 +438,12 @@ class App:
 
 	def s_key_press(self, widget, event):
 		"""Save game."""
-		self.save("game.txt")
-		print "Saved game to 'game.txt'."
+		if self.last_loaded_file != None:
+			fname = self.last_loaded_file
+		else:
+			fname = "game.txt"
+		self.save(fname)
+		print "Saved game to '%s'." % fname
 
 	def l_key_press(self, widget, event):
 		"""Load game."""
@@ -479,6 +538,24 @@ def print_help():
 	print ""
 	print "-e:         Invoke editor mode."
 	print "gamefile:   Edit a specific game file."
+	print ""
+	print_game_help()
+	print ""
+	print_editor_help()
+
+def print_game_help():
+	print "Game play: Drag the vertices around until the figure"
+	print "is disentangled, i.e. all the edges are black.  You can"
+	print "also <tab> and arrow keys to navigate around.  Press 'h'"
+	print "for help."
+
+def print_editor_help():
+	"""Print editor help."""
+	print "Editor: 's' to save, 'n' to add a new edge, <Del> to delete"
+	print "an edge, and 'l' to revert to saved game.  To add an edge"
+	print "between vertices, select one vertex and right-click on the"
+	print "other one.  To delete, do the same, but middle-click.  Game"
+	print "play keys/mouse bindings are the same."
 
 def main():
 	"""Main routine."""
